@@ -1,46 +1,158 @@
-# Card
-<h1 style="text-align:center;">炫酷抽卡遊戲</h1>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>炫酷抽卡遊戲</title>
+<style>
+  body {
+    margin: 0; padding: 0;
+    background-image: url('https://i.postimg.cc/BbMSWcJZ/zip-1.jpg');
+    background-size: cover;
+    background-position: center;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    text-align: center;
+  }
+  h1 { margin-top: 20px; text-shadow: 2px 2px 4px #000; }
 
-<div style="text-align:center;margin-bottom:20px;">
-  <button class="drawBtn" data-rarity="1" style="padding:12px 25px;margin:0 5px;">抽一星</button>
-  <button class="drawBtn" data-rarity="2" style="padding:12px 25px;margin:0 5px;">抽二星</button>
-  <button class="drawBtn" data-rarity="3" style="padding:12px 25px;margin:0 5px;">抽三星</button>
+  #introArea, #gameArea { text-align: center; }
+  #gameArea { display: none; }
+
+  .infoCard {
+    width: 200px; margin: 50px auto;
+    cursor: pointer;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.3s;
+  }
+  .infoCard:hover { transform: scale(1.05); }
+
+  .drawBtn {
+    padding: 12px 25px; margin: 10px 5px;
+    font-size: 18px; border: none; border-radius: 8px;
+    background-color: #ffd700; color: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+
+  #card { 
+    margin-top: 40px; 
+    opacity: 0; 
+    transition: all 0.6s ease; 
+    cursor: pointer;
+    display: inline-block;
+  }
+  #cardImg { 
+    width: 200px; 
+    border-radius:10px; 
+    box-shadow:0 4px 10px rgba(0,0,0,0.2); 
+    transition: transform 0.4s ease;
+  }
+  #cardName { font-size: 24px; margin-top: 10px; text-shadow: 1px 1px 3px #000; }
+
+  /* 放大顯示樣式 */
+  #card.fullscreen {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(2);
+    z-index: 999;
+  }
+  #backBtn {
+    display: none;
+    position: fixed;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    font-size: 18px;
+    background: #ff4500;
+    border: none; border-radius: 6px;
+    color: #fff; cursor: pointer;
+    z-index: 1000;
+  }
+</style>
+</head>
+<body>
+
+<h1>炫酷抽卡遊戲</h1>
+
+<!-- 說明卡區 -->
+<div id="introArea">
+  <img id="introCard" class="infoCard" src="https://i.postimg.cc/MTYxRbMV/zip-2.jpg" alt="說明卡">
+  <div>點擊卡片繼續</div>
 </div>
 
-<div id="card" style="margin-top:40px;text-align:center;opacity:0;transition: all 0.6s ease;">
-  <img id="cardImg" src="" alt="" style="width:200px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);">
-  <div id="cardName" style="font-size:24px;margin-top:10px;"></div>
+<!-- 遊戲區 -->
+<div id="gameArea">
+  <button id="startBtn" class="drawBtn">開始遊戲</button>
+  
+  <div id="buttonsArea" style="margin-top:20px; display:none;">
+    <button class="drawBtn" data-rarity="1">抽一星</button>
+    <button class="drawBtn" data-rarity="2">抽二星</button>
+    <button class="drawBtn" data-rarity="3">抽三星</button>
+  </div>
+
+  <div id="card">
+    <img id="cardImg" src="" alt="">
+    <div id="cardName"></div>
+  </div>
 </div>
+
+<button id="backBtn">返回</button>
 
 <script>
-const cards = [
-  {name:"一星", rarity:1, imgs:[
-    "https://i.postimg.cc/PqsNtJzP/zip-4.jpg",
-    "https://i.postimg.cc/1zh49XcF/zip-5.jpg",
-    "https://i.postimg.cc/vmFDQTL9/zip-6.jpg"
-  ]},
-  {name:"二星", rarity:2, imgs:[
-    "https://i.postimg.cc/bYH5gBBr/zip-24.jpg",
-    "https://i.postimg.cc/HsYhh9qj/zip-25.jpg",
-    "https://i.postimg.cc/3J8ccFsJ/zip-26.jpg"
-  ]},
-  {name:"三星", rarity:3, imgs:[
-    "https://i.postimg.cc/SRDDhHB9/zip-49.jpg",
-    "https://i.postimg.cc/1XJJQbkV/zip-50.jpg",
-    "https://i.postimg.cc/4yBBgjD7/zip-51.jpg"
-  ]}
-];
-
+// --- 說明卡流程 ---
+let step = 0;
+const introCard = document.getElementById("introCard");
+const introArea = document.getElementById("introArea");
+const gameArea = document.getElementById("gameArea");
+const startBtn = document.getElementById("startBtn");
+const buttonsArea = document.getElementById("buttonsArea");
 const cardDiv = document.getElementById("card");
 const cardImg = document.getElementById("cardImg");
 const cardName = document.getElementById("cardName");
+const backBtn = document.getElementById("backBtn");
 
-document.querySelectorAll(".drawBtn").forEach(btn=>{
+const introImgs = [
+  "https://i.postimg.cc/MTYxRbMV/zip-2.jpg",
+  "https://i.postimg.cc/RFT9fQ61/zip-3.jpg"
+];
+
+introCard.addEventListener("click", ()=>{
+  step++;
+  if(step < introImgs.length){
+    introCard.src = introImgs[step];
+  } else {
+    introArea.style.display = "none";
+    gameArea.style.display = "block";
+  }
+});
+
+// --- 卡牌資料（示範3張一星/二星/三星，可替換成完整70張） ---
+const cards = [
+  {name:"一星", rarity:1, imgs:[
+    "https://i.postimg.cc/jj0Cs2Qy/zip-10.jpg","https://i.postimg.cc/mrfhbkNy/zip-11.jpg","https://i.postimg.cc/HLDjpn44/zip-12.jpg"
+  ]},
+  {name:"二星", rarity:2, imgs:[
+    "https://i.postimg.cc/bYH5gBBr/zip-24.jpg","https://i.postimg.cc/HsYhh9qj/zip-25.jpg","https://i.postimg.cc/3J8ccFsJ/zip-26.jpg"
+  ]},
+  {name:"三星", rarity:3, imgs:[
+    "https://i.postimg.cc/SRDDhHB9/zip-49.jpg","https://i.postimg.cc/1XJJQbkV/zip-50.jpg","https://i.postimg.cc/4yBBgjD7/zip-51.jpg"
+  ]}
+];
+
+// --- 開始遊戲按鈕 ---
+startBtn.addEventListener("click", ()=>{
+  startBtn.style.display = "none";
+  buttonsArea.style.display = "block";
+});
+
+// --- 抽卡功能 ---
+document.querySelectorAll(".drawBtn[data-rarity]").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     const rarity = parseInt(btn.dataset.rarity);
     const card = cards.find(c => c.rarity === rarity);
 
-    // 隱藏卡牌做動畫
+    // 抽卡切換動畫
     cardDiv.style.opacity = 0;
     cardDiv.style.transform = "scale(0.5) translateY(-50px)";
 
@@ -48,10 +160,25 @@ document.querySelectorAll(".drawBtn").forEach(btn=>{
       const randomImg = card.imgs[Math.floor(Math.random()*card.imgs.length)];
       cardImg.src = randomImg;
       cardName.textContent = `${card.name} - ${"⭐".repeat(card.rarity)}`;
-
       cardDiv.style.opacity = 1;
       cardDiv.style.transform = "scale(1) translateY(0)";
     }, 200);
   });
 });
+
+// --- 點擊放大卡牌 ---
+cardDiv.addEventListener("click", ()=>{
+  if(cardDiv.classList.contains("fullscreen")) return;
+  cardDiv.classList.add("fullscreen");
+  backBtn.style.display = "block";
+});
+
+// --- 返回抽卡界面 ---
+backBtn.addEventListener("click", ()=>{
+  cardDiv.classList.remove("fullscreen");
+  backBtn.style.display = "none";
+});
 </script>
+
+</body>
+</html>
